@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Campus Events</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header>
+
+        <h1>Campus Events</h1>
+
+        <nav>
+            <a href="index.html">Events</a>
+            <a href="login.html">Login</a>
+            <a href="register.html">Register</a>
+
+            <span id="userInfo"></span>
+
+            <button onclick="logout()">Logout</button>
+        </nav>
+
+    </header>
+
+
+    <main>
+
+        <section class="hero">
+
+            <h2>Discover Campus Events</h2>
+
+            <p>
+                Find academic, social and other events happening
+                at Northrise University.
+            </p>
+
+        </section>
+
+
+        <section class="filters">
+
+            <input
+                type="text"
+                id="search"
+                placeholder="Search events..."
+            >
+
+            <select id="category">
+
+                <option value="">
+                    All Categories
+                </option>
+
+            </select>
+
+            <button onclick="loadEvents()">
+                Search
+            </button>
+
+        </section>
+
+
+        <section>
+
+            <h2>Upcoming Events</h2>
+
+            <div id="events" class="events-container">
+
+                <p>Loading events...</p>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <script src="app.js"></script>
+
+</body>
+
+</html>
