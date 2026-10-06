@@ -2,12 +2,18 @@
 <html lang="en">
 
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>Register - Campus Events</title>
 
     <link rel="stylesheet" href="style.css">
+
 </head>
 
 <body>
@@ -17,9 +23,19 @@
         <h1>Campus Events</h1>
 
         <nav>
-            <a href="index.html">Events</a>
-            <a href="login.html">Login</a>
-            <a href="register.html">Register</a>
+
+            <a href="index.html">
+                Events
+            </a>
+
+            <a href="login.html">
+                Login
+            </a>
+
+            <a href="register.html">
+                Register
+            </a>
+
         </nav>
 
     </header>
@@ -31,51 +47,74 @@
 
             <h2>Create an Account</h2>
 
+
             <form id="registerForm">
 
                 <p>
-                    <label for="name">Name</label><br>
+
+                    <label for="name">
+                        Name
+                    </label>
+
+                    <br>
 
                     <input
                         type="text"
                         id="name"
                         required
                     >
+
                 </p>
 
 
                 <p>
-                    <label for="email">Email</label><br>
+
+                    <label for="email">
+                        Email
+                    </label>
+
+                    <br>
 
                     <input
                         type="email"
                         id="email"
                         required
                     >
+
                 </p>
 
 
                 <p>
-                    <label for="password">Password</label><br>
+
+                    <label for="password">
+                        Password
+                    </label>
+
+                    <br>
 
                     <input
                         type="password"
                         id="password"
                         required
                     >
+
                 </p>
 
 
                 <p>
+
                     <label for="password_confirmation">
                         Confirm Password
-                    </label><br>
+                    </label>
+
+                    <br>
 
                     <input
                         type="password"
                         id="password_confirmation"
                         required
                     >
+
                 </p>
 
 
@@ -95,110 +134,147 @@
 
     <script>
 
-        const API_URL = "http://127.0.0.1:8000/api";
+        const API_URL =
+            "https://campus-events-api-production.up.railway.app/api";
 
 
-        document.getElementById("registerForm")
-            .addEventListener("submit", async function(event) {
+        document
+            .getElementById("registerForm")
+            .addEventListener(
+                "submit",
+                async function(event) {
 
-                event.preventDefault();
-
-
-                const name =
-                    document.getElementById("name").value;
-
-                const email =
-                    document.getElementById("email").value;
-
-                const password =
-                    document.getElementById("password").value;
-
-                const passwordConfirmation =
-                    document.getElementById("password_confirmation").value;
+                    event.preventDefault();
 
 
-                if (password !== passwordConfirmation) {
+                    const name =
+                        document.getElementById("name").value;
 
-                    document.getElementById("message")
-                        .textContent =
-                        "Passwords do not match.";
+                    const email =
+                        document.getElementById("email").value;
 
-                    return;
-                }
+                    const password =
+                        document.getElementById("password").value;
 
-
-                try {
-
-                    const response = await fetch(
-                        `${API_URL}/register`,
-                        {
-                            method: "POST",
-
-                            headers: {
-                                "Content-Type": "application/json",
-                                "Accept": "application/json"
-                            },
-
-                            body: JSON.stringify({
-                                name: name,
-                                email: email,
-                                password: password,
-                                password_confirmation:
-                                    passwordConfirmation
-                            })
-                        }
-                    );
+                    const passwordConfirmation =
+                        document
+                            .getElementById(
+                                "password_confirmation"
+                            )
+                            .value;
 
 
-                    const result = await response.json();
+                    if (
+                        password !==
+                        passwordConfirmation
+                    ) {
 
-
-                    if (!response.ok) {
-
-                        document.getElementById("message")
+                        document
+                            .getElementById("message")
                             .textContent =
-                            result.message ||
-                            "Registration failed.";
+                            "Passwords do not match.";
 
                         return;
+
                     }
 
 
-                    localStorage.setItem(
-                        "token",
-                        result.token
-                    );
+                    try {
+
+                        const response =
+                            await fetch(
+                                `${API_URL}/register`,
+                                {
+
+                                    method: "POST",
+
+                                    headers: {
+
+                                        "Content-Type":
+                                            "application/json",
+
+                                        "Accept":
+                                            "application/json"
+
+                                    },
+
+                                    body: JSON.stringify({
+
+                                        name: name,
+
+                                        email: email,
+
+                                        password: password,
+
+                                        password_confirmation:
+                                            passwordConfirmation
+
+                                    })
+
+                                }
+                            );
 
 
-                    localStorage.setItem(
-                        "user",
-                        JSON.stringify(result.user)
-                    );
+                        const result =
+                            await response.json();
 
 
-                    document.getElementById("message")
-                        .textContent =
-                        "Registration successful!";
+                        if (!response.ok) {
+
+                            document
+                                .getElementById("message")
+                                .textContent =
+                                result.message ||
+                                "Registration failed.";
+
+                            return;
+
+                        }
 
 
-                    setTimeout(function() {
+                        localStorage.setItem(
+                            "token",
+                            result.token
+                        );
 
-                        window.location.href = "index.html";
 
-                    }, 1000);
+                        localStorage.setItem(
+                            "user",
+                            JSON.stringify(result.user)
+                        );
 
 
-                } catch (error) {
+                        document
+                            .getElementById("message")
+                            .textContent =
+                            "Registration successful!";
 
-                    console.error(error);
 
-                    document.getElementById("message")
-                        .textContent =
-                        "Unable to connect to the Laravel API.";
+                        setTimeout(
+                            function() {
+
+                                window.location.href =
+                                    "index.html";
+
+                            },
+                            1000
+                        );
+
+
+                    } catch (error) {
+
+                        console.error(error);
+
+
+                        document
+                            .getElementById("message")
+                            .textContent =
+                            "Unable to connect to the Laravel API.";
+
+                    }
 
                 }
-
-            });
+            );
 
     </script>
 

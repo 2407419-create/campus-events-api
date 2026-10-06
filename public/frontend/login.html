@@ -2,23 +2,44 @@
 <html lang="en">
 
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
     <title>Login - Campus Events</title>
+
     <link rel="stylesheet" href="style.css">
+
 </head>
 
 <body>
 
     <header>
+
         <h1>Campus Events</h1>
 
         <nav>
-            <a href="index.html">Events</a>
-            <a href="login.html">Login</a>
-            <a href="register.html">Register</a>
+
+            <a href="index.html">
+                Events
+            </a>
+
+            <a href="login.html">
+                Login
+            </a>
+
+            <a href="register.html">
+                Register
+            </a>
+
         </nav>
+
     </header>
+
 
     <main>
 
@@ -26,21 +47,49 @@
 
             <h2>Login</h2>
 
+
             <form id="loginForm">
 
                 <p>
-                    <label>Email</label><br>
-                    <input type="email" id="email" required>
+
+                    <label for="email">
+                        Email
+                    </label>
+
+                    <br>
+
+                    <input
+                        type="email"
+                        id="email"
+                        required
+                    >
+
                 </p>
+
 
                 <p>
-                    <label>Password</label><br>
-                    <input type="password" id="password" required>
+
+                    <label for="password">
+                        Password
+                    </label>
+
+                    <br>
+
+                    <input
+                        type="password"
+                        id="password"
+                        required
+                    >
+
                 </p>
 
-                <button type="submit">Login</button>
+
+                <button type="submit">
+                    Login
+                </button>
 
             </form>
+
 
             <p id="message"></p>
 
@@ -48,64 +97,120 @@
 
     </main>
 
+
     <script>
 
-        const API_URL = "http://127.0.0.1:8000/api";
+        const API_URL =
+            "https://campus-events-api-production.up.railway.app/api";
 
-        document.getElementById("loginForm").addEventListener("submit", async function(event) {
 
-            event.preventDefault();
+        document
+            .getElementById("loginForm")
+            .addEventListener(
+                "submit",
+                async function(event) {
 
-            const email = document.getElementById("email").value;
-            const password = document.getElementById("password").value;
+                    event.preventDefault();
 
-            try {
 
-                const response = await fetch(`${API_URL}/login`, {
+                    const email =
+                        document.getElementById("email").value;
 
-                    method: "POST",
+                    const password =
+                        document.getElementById("password").value;
 
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Accept": "application/json"
-                    },
 
-                    body: JSON.stringify({
-                        email: email,
-                        password: password
-                    })
+                    try {
 
-                });
+                        const response =
+                            await fetch(
+                                `${API_URL}/login`,
+                                {
 
-                const result = await response.json();
+                                    method: "POST",
 
-                if (!response.ok) {
+                                    headers: {
 
-                    document.getElementById("message").textContent =
-                        result.message || "Login failed.";
+                                        "Content-Type":
+                                            "application/json",
 
-                    return;
+                                        "Accept":
+                                            "application/json"
+
+                                    },
+
+                                    body: JSON.stringify({
+
+                                        email: email,
+
+                                        password: password
+
+                                    })
+
+                                }
+                            );
+
+
+                        const result =
+                            await response.json();
+
+
+                        if (!response.ok) {
+
+                            document
+                                .getElementById("message")
+                                .textContent =
+                                result.message ||
+                                "Login failed.";
+
+                            return;
+
+                        }
+
+
+                        localStorage.setItem(
+                            "token",
+                            result.token
+                        );
+
+
+                        localStorage.setItem(
+                            "user",
+                            JSON.stringify(result.user)
+                        );
+
+
+                        document
+                            .getElementById("message")
+                            .textContent =
+                            "Login successful!";
+
+
+                        setTimeout(
+                            function() {
+
+                                window.location.href =
+                                    "index.html";
+
+                            },
+                            1000
+                        );
+
+
+                    } catch (error) {
+
+                        console.error(error);
+
+
+                        document
+                            .getElementById("message")
+                            .textContent =
+                            "Unable to connect to the Laravel API.";
+
+                    }
+
                 }
-
-                localStorage.setItem("token", result.token);
-                localStorage.setItem("user", JSON.stringify(result.user));
-
-                document.getElementById("message").textContent =
-                    "Login successful!";
-
-                setTimeout(function() {
-                    window.location.href = "index.html";
-                }, 1000);
-
-            } catch (error) {
-
-                console.error(error);
-
-                document.getElementById("message").textContent =
-                    "Unable to connect to the Laravel API.";
-            }
-
-        });
+            );
 
     </script>
 

@@ -1,4 +1,4 @@
-const API_URL = "http://127.0.0.1:8000/api/v1";
+const API_URL = "https://campus-events-api-production.up.railway.app/api/v1";
 
 
 // Display logged-in user
@@ -10,8 +10,12 @@ function displayUser() {
 
         const userData = JSON.parse(user);
 
-        document.getElementById("userInfo").textContent =
-            "Welcome, " + userData.name;
+        const userInfo = document.getElementById("userInfo");
+
+        if (userInfo) {
+            userInfo.textContent =
+                "Welcome, " + userData.name;
+        }
     }
 }
 
@@ -65,7 +69,7 @@ async function loadEvents() {
         eventsContainer.innerHTML = "";
 
 
-        if (result.data.length === 0) {
+        if (!result.data || result.data.length === 0) {
 
             eventsContainer.innerHTML =
                 "<p>No events found.</p>";
@@ -99,7 +103,8 @@ async function loadEvents() {
 
                     <p>
                         <strong>Time:</strong>
-                        ${event.start_time} - ${event.end_time}
+                        ${event.start_time} -
+                        ${event.end_time}
                     </p>
 
                     <p>
@@ -205,7 +210,7 @@ async function registerForEvent(eventId) {
     try {
 
         const response = await fetch(
-            "http://127.0.0.1:8000/api/v1/registrations",
+            `${API_URL}/registrations`,
             {
                 method: "POST",
 
@@ -261,7 +266,7 @@ async function logout() {
     try {
 
         await fetch(
-            "http://127.0.0.1:8000/api/logout",
+            "https://campus-events-api-production.up.railway.app/api/logout",
             {
                 method: "POST",
 
