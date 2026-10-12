@@ -1,8 +1,10 @@
+
 <?php
 
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -16,7 +18,17 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \App\Http\Middleware\RoleMiddleware::class,
             'api.log' => \App\Http\Middleware\ApiLogMiddleware::class,
         ]);
+
+        $middleware->redirectGuestsTo(
+            fn (Request $request) => $request->is('api/*')
+                ? null
+                : '/login'
+        );
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
-    })->create();
+        $exceptions->shouldRenderJsonWhen(
+            fn (Request $request, \Throwable $exception) =>
+                $request->is('api/*') || $request->expectsJson()
+        );
+    })
+    ->create();
