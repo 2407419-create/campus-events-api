@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\V1\EventRegistrationController;
 */
 
 Route::post('/register', [AuthController::class, 'register']);
+
 Route::post('/login', [AuthController::class, 'login']);
 
 Route::post('/logout', [AuthController::class, 'logout'])
@@ -36,23 +37,42 @@ Route::get('/user', function (Request $request) {
 
 /*
 |--------------------------------------------------------------------------
-| API Version 1
+| API Version 1 - Public Routes
 |--------------------------------------------------------------------------
+| Visitors can view events, categories and event images without logging in.
+*/
+
+Route::prefix('v1')->group(function () {
+
+    // Public categories
+    Route::get('/categories', [CategoryController::class, 'index']);
+    Route::get('/categories/{category}', [CategoryController::class, 'show']);
+
+    // Public events
+    Route::get('/events/upcoming', [EventController::class, 'upcoming']);
+    Route::get('/events/past', [EventController::class, 'past']);
+    Route::get('/events', [EventController::class, 'index']);
+    Route::get('/events/{event}', [EventController::class, 'show']);
+
+    // Public event images
+    Route::get('/events/{eventId}/images', [EventImageController::class, 'index']);
+
+    Route::get('/events/{eventId}/images/{id}', [EventImageController::class, 'show']);
+});
+
+
+/*
+|--------------------------------------------------------------------------
+| API Version 1 - Protected Routes
+|--------------------------------------------------------------------------
+| These routes require a valid Sanctum authentication token.
 */
 
 Route::prefix('v1')
     ->middleware(['auth:sanctum', 'api.log'])
     ->group(function () {
 
-        /*
-        |--------------------------------------------------------------------------
-        | Categories
-        |--------------------------------------------------------------------------
-        */
-
-        Route::get('/categories', [CategoryController::class, 'index']);
-        Route::get('/categories/{category}', [CategoryController::class, 'show']);
-
+        // Category management
         Route::post('/categories', [CategoryController::class, 'store'])
             ->middleware('role:Administrator,Event Organizer');
 
@@ -66,18 +86,7 @@ Route::prefix('v1')
             ->middleware('role:Administrator,Event Organizer');
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Events
-        |--------------------------------------------------------------------------
-        */
-
-        Route::get('/events/upcoming', [EventController::class, 'upcoming']);
-        Route::get('/events/past', [EventController::class, 'past']);
-
-        Route::get('/events', [EventController::class, 'index']);
-        Route::get('/events/{event}', [EventController::class, 'show']);
-
+        // Event management
         Route::post('/events', [EventController::class, 'store'])
             ->middleware('role:Administrator,Event Organizer');
 
@@ -88,30 +97,17 @@ Route::prefix('v1')
             ->middleware('role:Administrator,Event Organizer');
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Event Images
-        |--------------------------------------------------------------------------
-        */
-
-        Route::get('/events/{eventId}/images', [EventImageController::class, 'index']);
-
+        // Event image management
         Route::post('/events/{eventId}/images', [EventImageController::class, 'store'])
             ->middleware('role:Administrator,Event Organizer');
-
-        Route::get('/events/{eventId}/images/{id}', [EventImageController::class, 'show']);
 
         Route::delete('/events/{eventId}/images/{id}', [EventImageController::class, 'destroy'])
             ->middleware('role:Administrator,Event Organizer');
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Event Registrations
-        |--------------------------------------------------------------------------
-        */
-
+        // Event registrations
         Route::get('/registrations', [EventRegistrationController::class, 'index']);
+
         Route::get('/registrations/{registration}', [EventRegistrationController::class, 'show']);
 
         Route::post('/registrations', [EventRegistrationController::class, 'store'])
