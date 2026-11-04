@@ -1,3 +1,4 @@
+
 <?php
 
 namespace App\Http\Controllers\Api\V1;
@@ -9,35 +10,47 @@ use Illuminate\Http\Request;
 class EventController extends Controller
 {
     /**
-     * Display all events with optional search and filters.
+     * Display events.
      */
     public function index(Request $request)
     {
         $query = Event::with(['category', 'organizer']);
 
-        // Search by event title
-        if ($request->filled('search')) {
-            $query->where('title', 'like', '%' . $request->search . '%');
+        // Organizers can only view their own events.
+        if ($request->user()->role->name === 'Event Organizer') {
+            $query->where('organizer_id', $request->user()->id);
         }
 
-        // Filter by category
+        // Search events by title or description.
+        if ($request->filled('search')) {
+            $search = $request->search;
+
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        // Filter by category.
         if ($request->filled('category_id')) {
             $query->where('category_id', $request->category_id);
         }
 
-        // Filter by organizer
-        if ($request->filled('organizer_id')) {
+        // Allow other roles to filter by organizer.
+        // Organizer ownership is enforced above.
+        if (
+            $request->filled('organizer_id') &&
+            $request->user()->role->name !== 'Event Organizer'
+        ) {
             $query->where('organizer_id', $request->organizer_id);
         }
 
-        // Filter by date
+        // Filter by event date.
         if ($request->filled('date')) {
             $query->whereDate('event_date', $request->date);
         }
 
-        $events = $query
-            ->orderBy('event_date', 'asc')
-            ->get();
+        $events = $query->orderBy('event_date', 'asc')->get();
 
         return response()->json([
             'success' => true,
@@ -65,7 +78,7 @@ class EventController extends Controller
             'status' => 'nullable|in:Upcoming,Ongoing,Completed,Cancelled',
         ]);
 
-        // Automatically use the logged-in user's ID
+        // Automatically assign the logged-in organizer.
         $validated['organizer_id'] = $request->user()->id;
 
         $event = Event::create($validated);
@@ -80,16 +93,9 @@ class EventController extends Controller
     /**
      * Display a single event.
      */
-    public function show(string $id)
+    public function show(Event $event)
     {
-        $event = Event::with(['category', 'organizer'])->find($id);
-
-        if (!$event) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Event not found.'
-            ], 404);
-        }
+        $event->load(['category', 'organizer']);
 
         return response()->json([
             'success' => true,
@@ -99,23 +105,14 @@ class EventController extends Controller
     }
 
     /**
-     * Update an existing event.
+     * Update an event.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Event $event)
     {
-        $event = Event::find($id);
-
-        if (!$event) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Event not found.'
-            ], 404);
-        }
-
-        // Event Organizers can only update their own events
+        // Organizers can only update their own events.
         if (
             $request->user()->role->name === 'Event Organizer' &&
-            $event->organizer_id !== $request->user()->id
+            (int) $event->organizer_id !== (int) $request->user()->id
         ) {
             return response()->json([
                 'success' => false,
@@ -153,6 +150,7 @@ class EventController extends Controller
     {
         $events = Event::with(['category', 'organizer'])
             ->whereDate('event_date', '>=', now()->toDateString())
+            ->where('status', 'Upcoming')
             ->orderBy('event_date', 'asc')
             ->get();
 
@@ -183,21 +181,12 @@ class EventController extends Controller
     /**
      * Delete an event.
      */
-    public function destroy(Request $request, string $id)
+    public function destroy(Request $request, Event $event)
     {
-        $event = Event::find($id);
-
-        if (!$event) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Event not found.'
-            ], 404);
-        }
-
-        // Event Organizers can only delete their own events
+        // Organizers can only delete their own events.
         if (
             $request->user()->role->name === 'Event Organizer' &&
-            $event->organizer_id !== $request->user()->id
+            (int) $event->organizer_id !== (int) $request->user()->id
         ) {
             return response()->json([
                 'success' => false,
