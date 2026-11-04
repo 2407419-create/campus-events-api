@@ -1,14 +1,10 @@
-
 const API_URL =
     "https://campus-events-api-production.up.railway.app/api/v1";
 
 const AUTH_URL =
     "https://campus-events-api-production.up.railway.app/api";
 
-const FRONTEND_URL =
-    "https://2407419-create.github.io";
-
-const token = localStorage.getItem("token");
+let token = localStorage.getItem("token");
 
 let user = null;
 
@@ -17,47 +13,110 @@ let organizerEvents = [];
 let organizerRegistrations = [];
 
 
-try {
+// GET HTML ELEMENTS
 
-    user = JSON.parse(
-        localStorage.getItem("user") || "null"
-    );
+const loginArea = document.getElementById("loginArea");
 
-} catch {
+const dashboardArea = document.getElementById("dashboardArea");
 
-    user = null;
+const loginForm = document.getElementById("loginForm");
+
+const loginMessage = document.getElementById("loginMessage");
+
+const loginButton = document.getElementById("loginButton");
+
+const eventForm = document.getElementById("eventForm");
+
+const categorySelect = document.getElementById("category_id");
+
+const eventMessage = document.getElementById("eventMessage");
+
+const submitButton = document.getElementById("submitButton");
+
+const logoutLink = document.getElementById("logoutLink");
+
+
+// DISPLAY MESSAGE
+
+function showMessage(element, text, type) {
+
+    element.textContent = text;
+
+    element.className = `message ${type}`;
 
 }
 
 
-const form = document.getElementById("eventForm");
+// CHECK USER INFORMATION
 
-const categorySelect =
-    document.getElementById("category_id");
+function getSavedUser() {
 
-const message =
-    document.getElementById("message");
+    try {
 
-const submitButton =
-    document.getElementById("submitButton");
+        return JSON.parse(
+            localStorage.getItem("user") || "null"
+        );
+
+    } catch (error) {
+
+        return null;
+
+    }
+
+}
 
 
-// CHECK LOGIN AND ORGANIZER ROLE
+// SHOW LOGIN OR DASHBOARD
 
-if (!token || !user) {
+function checkLogin() {
 
-    alert("Please log in first.");
+    token = localStorage.getItem("token");
 
-    window.location.href =
-        `${FRONTEND_URL}/login.html`;
+    user = getSavedUser();
 
-} else if (Number(user.role_id) !== 2) {
+    if (!token || !user) {
 
-    alert("This dashboard is only for Event Organizers.");
+        loginArea.hidden = false;
 
-    window.location.href = FRONTEND_URL;
+        dashboardArea.hidden = true;
 
-} else {
+        logoutLink.hidden = true;
+
+        return;
+
+    }
+
+    if (Number(user.role_id) !== 2) {
+
+        localStorage.removeItem("token");
+
+        localStorage.removeItem("user");
+
+        token = null;
+
+        user = null;
+
+        loginArea.hidden = false;
+
+        dashboardArea.hidden = true;
+
+        logoutLink.hidden = true;
+
+        showMessage(
+            loginMessage,
+            "This dashboard is only for Event Organizers. Please log in with an organizer account.",
+            "error"
+        );
+
+        return;
+
+    }
+
+    loginArea.hidden = true;
+
+    dashboardArea.hidden = false;
+
+    logoutLink.hidden = false;
 
     document.getElementById("welcome").textContent =
         `Welcome, ${user.name}. You are logged in as an Event Organizer.`;
@@ -65,6 +124,110 @@ if (!token || !user) {
     initializeDashboard();
 
 }
+
+
+// ORGANIZER LOGIN
+
+loginForm.addEventListener("submit", async function(event) {
+
+    event.preventDefault();
+
+    const email =
+        document.getElementById("loginEmail").value.trim();
+
+    const password =
+        document.getElementById("loginPassword").value;
+
+    loginButton.disabled = true;
+
+    loginButton.textContent = "Logging in...";
+
+    showMessage(loginMessage, "", "");
+
+    try {
+
+        const response = await fetch(`${AUTH_URL}/login`, {
+
+            method: "POST",
+
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                email: email,
+                password: password
+            })
+
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+
+            const errors = result.errors
+                ? Object.values(result.errors).flat().join(" ")
+                : result.message;
+
+            throw new Error(
+                errors || "Login failed. Check your email and password."
+            );
+
+        }
+
+        if (!result.token || !result.user) {
+
+            throw new Error(
+                "The login response did not contain a token and user information."
+            );
+
+        }
+
+        // Check organizer role before saving the session.
+
+        if (Number(result.user.role_id) !== 2) {
+
+            throw new Error(
+                "Access denied. This account is not an Event Organizer account."
+            );
+
+        }
+
+        // Save Sanctum token and user information.
+
+        localStorage.setItem("token", result.token);
+
+        localStorage.setItem(
+            "user",
+            JSON.stringify(result.user)
+        );
+
+        token = result.token;
+
+        user = result.user;
+
+        loginForm.reset();
+
+        checkLogin();
+
+    } catch (error) {
+
+        showMessage(
+            loginMessage,
+            error.message,
+            "error"
+        );
+
+    } finally {
+
+        loginButton.disabled = false;
+
+        loginButton.textContent = "Log In";
+
+    }
+
+});
 
 
 // API REQUEST HELPER
@@ -87,9 +250,29 @@ async function apiRequest(url, options = {}) {
 
     });
 
+    const result = await response.json().catch(() => ({}));
 
-    const result = await response.json();
+    if (response.status === 401) {
 
+        localStorage.removeItem("token");
+
+        localStorage.removeItem("user");
+
+        token = null;
+
+        user = null;
+
+        loginArea.hidden = false;
+
+        dashboardArea.hidden = true;
+
+        logoutLink.hidden = true;
+
+        throw new Error(
+            "Your login session has expired. Please log in again."
+        );
+
+    }
 
     if (!response.ok) {
 
@@ -98,11 +281,10 @@ async function apiRequest(url, options = {}) {
             : result.message;
 
         throw new Error(
-            errors || "Something went wrong."
+            errors || "The API request failed."
         );
 
     }
-
 
     return result;
 
@@ -116,16 +298,13 @@ async function initializeDashboard() {
     try {
 
         await Promise.all([
-
             loadCategories(),
-
             loadDashboardData()
-
         ]);
 
     } catch (error) {
 
-        console.error(error);
+        console.error("Dashboard error:", error);
 
         alert(error.message);
 
@@ -134,52 +313,37 @@ async function initializeDashboard() {
 }
 
 
-// LOAD CATEGORIES
+// LOAD EVENT CATEGORIES
 
 async function loadCategories() {
 
-    try {
+    const result = await apiRequest(
+        `${API_URL}/categories`
+    );
 
-        const result = await apiRequest(
-            `${API_URL}/categories`
-        );
+    const categories = Array.isArray(result.data)
+        ? result.data
+        : [];
 
+    categorySelect.innerHTML =
+        '<option value="">Select a category</option>';
 
-        const categories = Array.isArray(result.data)
-            ? result.data
-            : [];
+    categories.forEach(category => {
 
+        const option = document.createElement("option");
 
-        categorySelect.innerHTML =
-            '<option value="">Select a category</option>';
+        option.value = category.id;
 
+        option.textContent = category.name;
 
-        categories.forEach(category => {
+        categorySelect.appendChild(option);
 
-            const option = document.createElement("option");
+    });
 
-            option.value = category.id;
-
-            option.textContent = category.name;
-
-            categorySelect.appendChild(option);
-
-        });
-
-
-        if (categories.length === 0) {
-
-            categorySelect.innerHTML =
-                '<option value="">No categories available</option>';
-
-        }
-
-    } catch (error) {
+    if (categories.length === 0) {
 
         categorySelect.innerHTML =
-            '<option value="">Unable to load categories</option>';
-
-        throw error;
+            '<option value="">No categories available</option>';
 
     }
 
@@ -199,17 +363,14 @@ async function loadDashboardData() {
 
         ]);
 
-
     organizerEvents = Array.isArray(eventsResult.data)
         ? eventsResult.data
         : [];
-
 
     organizerRegistrations =
         Array.isArray(registrationsResult.data)
             ? registrationsResult.data
             : [];
-
 
     updateOverview();
 
@@ -225,9 +386,7 @@ async function loadDashboardData() {
 function updateOverview() {
 
     const today = new Date()
-        .toISOString()
-        .split("T")[0];
-
+        .toLocaleDateString("en-CA");
 
     const upcoming = organizerEvents.filter(event =>
 
@@ -236,14 +395,11 @@ function updateOverview() {
 
     );
 
-
     document.getElementById("totalEvents").textContent =
         organizerEvents.length;
 
-
     document.getElementById("upcomingEvents").textContent =
         upcoming.length;
-
 
     document.getElementById("totalRegistrations").textContent =
         organizerRegistrations.length;
@@ -251,16 +407,13 @@ function updateOverview() {
 }
 
 
-// DISPLAY ORGANIZER EVENTS
+// DISPLAY EVENTS
 
 function displayEvents() {
 
-    const table =
-        document.getElementById("eventsTable");
-
+    const table = document.getElementById("eventsTable");
 
     table.innerHTML = "";
-
 
     if (organizerEvents.length === 0) {
 
@@ -277,40 +430,23 @@ function displayEvents() {
 
     }
 
-
     organizerEvents.forEach(event => {
 
         const row = table.insertRow();
 
-
-        const title = row.insertCell();
-
-        const category = row.insertCell();
-
-        const date = row.insertCell();
-
-        const venue = row.insertCell();
-
-        const status = row.insertCell();
-
-
-        title.textContent =
+        row.insertCell().textContent =
             event.title || "N/A";
 
-
-        category.textContent =
+        row.insertCell().textContent =
             event.category?.name || "N/A";
 
-
-        date.textContent =
+        row.insertCell().textContent =
             event.event_date || "N/A";
 
-
-        venue.textContent =
+        row.insertCell().textContent =
             event.venue || "N/A";
 
-
-        status.textContent =
+        row.insertCell().textContent =
             event.status || "N/A";
 
     });
@@ -318,16 +454,14 @@ function displayEvents() {
 }
 
 
-// DISPLAY STUDENT REGISTRATIONS
+// DISPLAY REGISTRATIONS
 
 function displayRegistrations() {
 
     const table =
         document.getElementById("registrationsTable");
 
-
     table.innerHTML = "";
-
 
     if (organizerRegistrations.length === 0) {
 
@@ -344,28 +478,17 @@ function displayRegistrations() {
 
     }
 
-
     organizerRegistrations.forEach(registration => {
 
         const row = table.insertRow();
 
-
-        const student = row.insertCell();
-
-        const event = row.insertCell();
-
-        const status = row.insertCell();
-
-
-        student.textContent =
+        row.insertCell().textContent =
             registration.user?.name || "Unknown student";
 
-
-        event.textContent =
+        row.insertCell().textContent =
             registration.event?.title || "Unknown event";
 
-
-        status.textContent =
+        row.insertCell().textContent =
             registration.status || "N/A";
 
     });
@@ -373,45 +496,34 @@ function displayRegistrations() {
 }
 
 
-// DISPLAY SUCCESS OR ERROR MESSAGE
+// DISPLAY EVENT SUCCESS OR ERROR
 
-function showMessage(text, type) {
+function showEventMessage(text, type) {
 
-    message.textContent = text;
-
-    message.className = `message ${type}`;
+    showMessage(eventMessage, text, type);
 
 }
 
 
-// CREATE A NEW EVENT
+// CREATE EVENT
 
-form.addEventListener("submit", async function(event) {
+eventForm.addEventListener("submit", async function(event) {
 
     event.preventDefault();
 
+    const formData = new FormData(eventForm);
 
-    const formData = new FormData(form);
+    const eventDate = formData.get("event_date");
 
+    const deadline = formData.get("registration_deadline");
 
-    const eventDate =
-        formData.get("event_date");
+    const startTime = formData.get("start_time");
 
-    const deadline =
-        formData.get("registration_deadline");
+    const endTime = formData.get("end_time");
 
-    const startTime =
-        formData.get("start_time");
+    if (deadline > eventDate) {
 
-    const endTime =
-        formData.get("end_time");
-
-
-    // Validate registration deadline.
-
-    if (deadline && deadline > eventDate) {
-
-        showMessage(
+        showEventMessage(
             "The registration deadline cannot be after the event date.",
             "error"
         );
@@ -420,12 +532,9 @@ form.addEventListener("submit", async function(event) {
 
     }
 
-
-    // Validate event time.
-
     if (endTime <= startTime) {
 
-        showMessage(
+        showEventMessage(
             "The end time must be later than the start time.",
             "error"
         );
@@ -434,16 +543,13 @@ form.addEventListener("submit", async function(event) {
 
     }
 
-
     const eventData = {
 
         title: formData.get("title").trim(),
 
         description: formData.get("description").trim(),
 
-        category_id: Number(
-            formData.get("category_id")
-        ),
+        category_id: Number(formData.get("category_id")),
 
         venue: formData.get("venue").trim(),
 
@@ -457,17 +563,15 @@ form.addEventListener("submit", async function(event) {
             formData.get("maximum_capacity")
         ),
 
-        registration_deadline: deadline || null,
+        registration_deadline: deadline,
 
         status: formData.get("status")
 
     };
 
-
     submitButton.disabled = true;
 
     submitButton.textContent = "Creating Event...";
-
 
     try {
 
@@ -478,9 +582,7 @@ form.addEventListener("submit", async function(event) {
                 method: "POST",
 
                 headers: {
-
                     "Content-Type": "application/json"
-
                 },
 
                 body: JSON.stringify(eventData)
@@ -488,28 +590,18 @@ form.addEventListener("submit", async function(event) {
             }
         );
 
-
-        showMessage(
-
-            result.message ||
-            "Event created successfully!",
-
+        showEventMessage(
+            result.message || "Event created successfully!",
             "success"
-
         );
 
-
-        form.reset();
-
-
-        // Refresh dashboard information.
+        eventForm.reset();
 
         await loadDashboardData();
 
-
     } catch (error) {
 
-        showMessage(
+        showEventMessage(
             error.message,
             "error"
         );
@@ -531,15 +623,9 @@ document.querySelectorAll(
     ".navigation button"
 ).forEach(button => {
 
-
     button.addEventListener("click", function() {
 
-
-        const selectedSection =
-            this.dataset.section;
-
-
-        // Hide all sections.
+        const selectedSection = this.dataset.section;
 
         document.querySelectorAll(
             ".dashboard-section"
@@ -549,15 +635,9 @@ document.querySelectorAll(
 
         });
 
-
-        // Show selected section.
-
         document.getElementById(
             selectedSection
         ).hidden = false;
-
-
-        // Update active navigation button.
 
         document.querySelectorAll(
             ".navigation button"
@@ -567,9 +647,7 @@ document.querySelectorAll(
 
         });
 
-
         this.classList.add("active");
-
 
     });
 
@@ -578,13 +656,9 @@ document.querySelectorAll(
 
 // LOGOUT
 
-document.getElementById(
-    "logoutLink"
-).addEventListener("click", async function(event) {
-
+logoutLink.addEventListener("click", async function(event) {
 
     event.preventDefault();
-
 
     try {
 
@@ -602,26 +676,37 @@ document.getElementById(
 
         });
 
-
     } catch (error) {
 
-        console.error(
-            "Logout request failed:",
-            error
-        );
+        console.error("Logout request failed:", error);
 
     } finally {
-
 
         localStorage.removeItem("token");
 
         localStorage.removeItem("user");
 
+        token = null;
 
-        window.location.href =
-            `${FRONTEND_URL}/login.html`;
+        user = null;
 
+        dashboardArea.hidden = true;
+
+        logoutLink.hidden = true;
+
+        loginArea.hidden = false;
+
+        showMessage(
+            loginMessage,
+            "You have logged out successfully.",
+            "success"
+        );
 
     }
 
 });
+
+
+// START THE DASHBOARD
+
+checkLogin();

@@ -1,15 +1,11 @@
-
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Organizer Dashboard - Campus Events</title>
 
     <style>
-
         * {
             box-sizing: border-box;
         }
@@ -48,8 +44,68 @@
             padding: 0 20px;
         }
 
-        .welcome {
-            margin-bottom: 25px;
+        .panel {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            margin-bottom: 20px;
+        }
+
+        .login-panel {
+            max-width: 450px;
+            margin: 60px auto;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+            font-weight: bold;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 11px;
+            border: 1px solid #ccd2d9;
+            border-radius: 5px;
+            font-size: 15px;
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .primary-button {
+            background: #17365d;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .primary-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .message {
+            margin: 15px 0;
+            font-weight: bold;
+        }
+
+        .success {
+            color: green;
+        }
+
+        .error {
+            color: #c62828;
         }
 
         .navigation {
@@ -72,14 +128,6 @@
         .navigation button.active {
             background: #17365d;
             color: white;
-        }
-
-        .panel {
-            background: white;
-            padding: 25px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-            margin-bottom: 20px;
         }
 
         .stats {
@@ -112,58 +160,8 @@
             gap: 15px;
         }
 
-        .form-group {
-            margin-bottom: 15px;
-        }
-
         .form-group.full {
             grid-column: 1 / -1;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 7px;
-            font-weight: bold;
-        }
-
-        input, select, textarea {
-            width: 100%;
-            padding: 11px;
-            border: 1px solid #ccd2d9;
-            border-radius: 5px;
-            font-size: 15px;
-        }
-
-        textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
-
-        .primary-button {
-            background: #17365d;
-            color: white;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .primary-button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        .message {
-            margin: 15px 0;
-            font-weight: bold;
-        }
-
-        .success {
-            color: green;
-        }
-
-        .error {
-            color: #c62828;
         }
 
         .table-wrapper {
@@ -186,12 +184,13 @@
             background: #eef3f9;
         }
 
-        .dashboard-section[hidden] {
+        .dashboard-section[hidden],
+        #dashboardArea[hidden],
+        #loginArea[hidden] {
             display: none;
         }
 
         @media (max-width: 650px) {
-
             header {
                 padding: 18px;
             }
@@ -208,415 +207,367 @@
                 padding: 17px;
             }
         }
-
     </style>
-
 </head>
 
 <body>
 
-    <header>
+<header>
+    <h2>Campus Events - Organizer</h2>
 
-        <h2>Campus Events - Organizer</h2>
+    <nav>
+        <a href="https://2407419-create.github.io/">
+            View Events
+        </a>
 
-        <nav>
-            <a href="https://2407419-create.github.io/">
-                View Events
-            </a>
-
-            <a href="#" id="logoutLink">
-                Logout
-            </a>
-        </nav>
-
-    </header>
+        <a href="#" id="logoutLink" hidden>
+            Logout
+        </a>
+    </nav>
+</header>
 
 
-    <div class="container">
+<!-- ORGANIZER LOGIN -->
 
-        <div class="welcome">
+<div class="container" id="loginArea" hidden>
 
-            <h2>Organizer Dashboard</h2>
+    <div class="panel login-panel">
 
-            <p id="welcome">
-                Loading organizer information...
-            </p>
+        <h2>Organizer Login</h2>
 
-        </div>
+        <p>Log in using your Event Organizer account.</p>
 
+        <div id="loginMessage" class="message"></div>
 
-        <!-- DASHBOARD NAVIGATION -->
+        <form id="loginForm">
 
-        <div class="navigation">
+            <div class="form-group">
+                <label for="loginEmail">Email Address</label>
 
-            <button class="active" data-section="overview">
-                Overview
-            </button>
-
-            <button data-section="myEvents">
-                My Events
-            </button>
-
-            <button data-section="createEvent">
-                Create Event
-            </button>
-
-            <button data-section="registrations">
-                Manage Registrations
-            </button>
-
-        </div>
-
-
-        <!-- OVERVIEW SECTION -->
-
-        <section id="overview" class="dashboard-section">
-
-            <div class="panel">
-
-                <h3>Dashboard Overview</h3>
-
-                <div class="stats">
-
-                    <div class="stat-card">
-
-                        <h3>Total Events</h3>
-
-                        <p id="totalEvents">0</p>
-
-                    </div>
-
-
-                    <div class="stat-card">
-
-                        <h3>Upcoming Events</h3>
-
-                        <p id="upcomingEvents">0</p>
-
-                    </div>
-
-
-                    <div class="stat-card">
-
-                        <h3>Total Registrations</h3>
-
-                        <p id="totalRegistrations">0</p>
-
-                    </div>
-
-                </div>
-
+                <input
+                    type="email"
+                    id="loginEmail"
+                    required
+                    autocomplete="username"
+                >
             </div>
 
-        </section>
+            <div class="form-group">
+                <label for="loginPassword">Password</label>
 
-
-        <!-- MY EVENTS SECTION -->
-
-        <section id="myEvents" class="dashboard-section" hidden>
-
-            <div class="panel">
-
-                <h3>My Events</h3>
-
-                <p>Events created by your organizer account.</p>
-
-                <div class="table-wrapper">
-
-                    <table>
-
-                        <thead>
-
-                            <tr>
-                                <th>Title</th>
-                                <th>Category</th>
-                                <th>Date</th>
-                                <th>Venue</th>
-                                <th>Status</th>
-                            </tr>
-
-                        </thead>
-
-                        <tbody id="eventsTable">
-
-                            <tr>
-                                <td colspan="5">Loading events...</td>
-                            </tr>
-
-                        </tbody>
-
-                    </table>
-
-                </div>
-
+                <input
+                    type="password"
+                    id="loginPassword"
+                    required
+                    autocomplete="current-password"
+                >
             </div>
 
-        </section>
+            <button
+                type="submit"
+                id="loginButton"
+                class="primary-button"
+            >
+                Log In
+            </button>
 
+        </form>
 
-        <!-- CREATE EVENT SECTION -->
+    </div>
 
-        <section id="createEvent" class="dashboard-section" hidden>
+</div>
 
-            <div class="panel">
 
-                <h3>Create a Campus Event</h3>
+<!-- ORGANIZER DASHBOARD -->
 
-                <p>Enter the details of the event you want to organize.</p>
+<div class="container" id="dashboardArea" hidden>
 
-                <div id="message" class="message"></div>
+    <div class="welcome">
+        <h2>Organizer Dashboard</h2>
+        <p id="welcome">Loading organizer information...</p>
+    </div>
 
-                <form id="eventForm">
+    <div class="navigation">
 
-                    <div class="form-grid">
+        <button class="active" data-section="overview">
+            Overview
+        </button>
 
+        <button data-section="myEvents">
+            My Events
+        </button>
 
-                        <div class="form-group full">
+        <button data-section="createEvent">
+            Create Event
+        </button>
 
-                            <label for="title">
-                                Event Title
-                            </label>
-
-                            <input
-                                type="text"
-                                id="title"
-                                name="title"
-                                required
-                            >
-
-                        </div>
-
-
-                        <div class="form-group full">
-
-                            <label for="description">
-                                Description
-                            </label>
-
-                            <textarea
-                                id="description"
-                                name="description"
-                            ></textarea>
-
-                        </div>
-
-
-                        <div class="form-group">
-
-                            <label for="category_id">
-                                Category
-                            </label>
-
-                            <select
-                                id="category_id"
-                                name="category_id"
-                                required
-                            >
-
-                                <option value="">
-                                    Loading categories...
-                                </option>
-
-                            </select>
-
-                        </div>
-
-
-                        <div class="form-group">
-
-                            <label for="venue">
-                                Venue
-                            </label>
-
-                            <input
-                                type="text"
-                                id="venue"
-                                name="venue"
-                                required
-                            >
-
-                        </div>
-
-
-                        <div class="form-group">
-
-                            <label for="event_date">
-                                Event Date
-                            </label>
-
-                            <input
-                                type="date"
-                                id="event_date"
-                                name="event_date"
-                                required
-                            >
-
-                        </div>
-
-
-                        <div class="form-group">
-
-                            <label for="registration_deadline">
-                                Registration Deadline
-                            </label>
-
-                            <input
-                                type="date"
-                                id="registration_deadline"
-                                name="registration_deadline"
-                            >
-
-                        </div>
-
-
-                        <div class="form-group">
-
-                            <label for="start_time">
-                                Start Time
-                            </label>
-
-                            <input
-                                type="time"
-                                id="start_time"
-                                name="start_time"
-                                required
-                            >
-
-                        </div>
-
-
-                        <div class="form-group">
-
-                            <label for="end_time">
-                                End Time
-                            </label>
-
-                            <input
-                                type="time"
-                                id="end_time"
-                                name="end_time"
-                                required
-                            >
-
-                        </div>
-
-
-                        <div class="form-group">
-
-                            <label for="maximum_capacity">
-                                Maximum Capacity
-                            </label>
-
-                            <input
-                                type="number"
-                                id="maximum_capacity"
-                                name="maximum_capacity"
-                                min="1"
-                                required
-                            >
-
-                        </div>
-
-
-                        <div class="form-group">
-
-                            <label for="status">
-                                Event Status
-                            </label>
-
-                            <select
-                                id="status"
-                                name="status"
-                                required
-                            >
-
-                                <option value="Upcoming">
-                                    Upcoming
-                                </option>
-
-                                <option value="Ongoing">
-                                    Ongoing
-                                </option>
-
-                                <option value="Completed">
-                                    Completed
-                                </option>
-
-                                <option value="Cancelled">
-                                    Cancelled
-                                </option>
-
-                            </select>
-
-                        </div>
-
-                    </div>
-
-
-                    <button
-                        type="submit"
-                        id="submitButton"
-                        class="primary-button"
-                    >
-                        Create Event
-                    </button>
-
-                </form>
-
-            </div>
-
-        </section>
-
-
-        <!-- REGISTRATIONS SECTION -->
-
-        <section id="registrations" class="dashboard-section" hidden>
-
-            <div class="panel">
-
-                <h3>Manage Registrations</h3>
-
-                <p>
-                    Students registered for your events.
-                </p>
-
-                <div class="table-wrapper">
-
-                    <table>
-
-                        <thead>
-
-                            <tr>
-                                <th>Student</th>
-                                <th>Event</th>
-                                <th>Registration Status</th>
-                            </tr>
-
-                        </thead>
-
-                        <tbody id="registrationsTable">
-
-                            <tr>
-                                <td colspan="3">
-                                    Loading registrations...
-                                </td>
-                            </tr>
-
-                        </tbody>
-
-                    </table>
-
-                </div>
-
-            </div>
-
-        </section>
+        <button data-section="registrations">
+            Manage Registrations
+        </button>
 
     </div>
 
 
-    <script src="organizer.js"></script>
+    <!-- OVERVIEW -->
+
+    <section id="overview" class="dashboard-section">
+
+        <div class="panel">
+
+            <h3>Dashboard Overview</h3>
+
+            <div class="stats">
+
+                <div class="stat-card">
+                    <h3>Total Events</h3>
+                    <p id="totalEvents">0</p>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Upcoming Events</h3>
+                    <p id="upcomingEvents">0</p>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Total Registrations</h3>
+                    <p id="totalRegistrations">0</p>
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- MY EVENTS -->
+
+    <section id="myEvents" class="dashboard-section" hidden>
+
+        <div class="panel">
+
+            <h3>My Events</h3>
+
+            <p>Events created by your organizer account.</p>
+
+            <div class="table-wrapper">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Category</th>
+                            <th>Date</th>
+                            <th>Venue</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="eventsTable">
+                        <tr>
+                            <td colspan="5">Loading events...</td>
+                        </tr>
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- CREATE EVENT -->
+
+    <section id="createEvent" class="dashboard-section" hidden>
+
+        <div class="panel">
+
+            <h3>Create a Campus Event</h3>
+
+            <p>Enter the details of the event you want to organize.</p>
+
+            <div id="eventMessage" class="message"></div>
+
+            <form id="eventForm">
+
+                <div class="form-grid">
+
+                    <div class="form-group full">
+                        <label for="title">Event Title</label>
+
+                        <input
+                            type="text"
+                            id="title"
+                            name="title"
+                            maxlength="255"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group full">
+                        <label for="description">Description</label>
+
+                        <textarea
+                            id="description"
+                            name="description"
+                            required
+                        ></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="category_id">Category</label>
+
+                        <select
+                            id="category_id"
+                            name="category_id"
+                            required
+                        >
+                            <option value="">Loading categories...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="venue">Venue</label>
+
+                        <input
+                            type="text"
+                            id="venue"
+                            name="venue"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="event_date">Event Date</label>
+
+                        <input
+                            type="date"
+                            id="event_date"
+                            name="event_date"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="registration_deadline">
+                            Registration Deadline
+                        </label>
+
+                        <input
+                            type="date"
+                            id="registration_deadline"
+                            name="registration_deadline"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="start_time">Start Time</label>
+
+                        <input
+                            type="time"
+                            id="start_time"
+                            name="start_time"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="end_time">End Time</label>
+
+                        <input
+                            type="time"
+                            id="end_time"
+                            name="end_time"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="maximum_capacity">
+                            Maximum Capacity
+                        </label>
+
+                        <input
+                            type="number"
+                            id="maximum_capacity"
+                            name="maximum_capacity"
+                            min="1"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="status">Event Status</label>
+
+                        <select id="status" name="status" required>
+                            <option value="Upcoming">Upcoming</option>
+                            <option value="Ongoing">Ongoing</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Cancelled">Cancelled</option>
+                        </select>
+                    </div>
+
+                </div>
+
+                <button
+                    type="submit"
+                    id="submitButton"
+                    class="primary-button"
+                >
+                    Create Event
+                </button>
+
+            </form>
+
+        </div>
+
+    </section>
+
+
+    <!-- MANAGE REGISTRATIONS -->
+
+    <section id="registrations" class="dashboard-section" hidden>
+
+        <div class="panel">
+
+            <h3>Manage Registrations</h3>
+
+            <p>Students registered for your events.</p>
+
+            <div class="table-wrapper">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Event</th>
+                            <th>Registration Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="registrationsTable">
+                        <tr>
+                            <td colspan="3">Loading registrations...</td>
+                        </tr>
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</div>
+
+
+<script src="organizer.js"></script>
 
 </body>
-
 </html>
