@@ -1,0 +1,198 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organizer Dashboard | Campus Events</title>
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f3f5f9;
+            color: #243047;
+        }
+
+        header {
+            background: #173b70;
+            color: white;
+            padding: 22px 6%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        header h1 { margin: 0; font-size: 23px; }
+
+        header a {
+            color: white;
+            text-decoration: none;
+            margin-left: 15px;
+        }
+
+        main {
+            max-width: 900px;
+            margin: 35px auto;
+            padding: 0 18px;
+        }
+
+        .panel {
+            background: white;
+            padding: 28px;
+            border-radius: 12px;
+            box-shadow: 0 4px 18px #152d4b12;
+        }
+
+        h2 { margin-top: 0; }
+
+        .intro { color: #617087; line-height: 1.5; }
+
+        form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+            margin-top: 25px;
+        }
+
+        .field { display: flex; flex-direction: column; gap: 7px; }
+
+        .full { grid-column: 1 / -1; }
+
+        label { font-weight: bold; font-size: 14px; }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccd4df;
+            border-radius: 6px;
+            font: inherit;
+            background: white;
+        }
+
+        textarea { min-height: 100px; resize: vertical; }
+
+        button {
+            border: 0;
+            border-radius: 6px;
+            padding: 13px 18px;
+            background: #1769aa;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:disabled { opacity: .6; cursor: wait; }
+
+        #message {
+            display: none;
+            padding: 13px;
+            border-radius: 6px;
+            margin-top: 18px;
+            overflow-wrap: anywhere;
+        }
+
+        #message.success { display: block; background: #e4f7e9; color: #17642d; }
+        #message.error { display: block; background: #ffeded; color: #9b2020; }
+
+        @media (max-width: 600px) {
+            form { grid-template-columns: 1fr; }
+            .full { grid-column: auto; }
+            .panel { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Campus Events — Organizer</h1>
+        <nav>
+            <a href="index.html">View Events</a>
+            <a href="#" id="logoutLink">Logout</a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="panel">
+            <h2>Create a Campus Event</h2>
+            <p class="intro">
+                Complete the form below to publish a new event through the
+                Campus Events REST API.
+            </p>
+
+            <p id="welcome"></p>
+
+            <form id="eventForm">
+                <div class="field full">
+                    <label for="title">Event Title *</label>
+                    <input id="title" name="title" required maxlength="255">
+                </div>
+
+                <div class="field full">
+                    <label for="description">Description *</label>
+                    <textarea id="description" name="description" required></textarea>
+                </div>
+
+                <div class="field">
+                    <label for="category_id">Category *</label>
+                    <select id="category_id" name="category_id" required>
+                        <option value="">Loading categories...</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label for="venue">Venue *</label>
+                    <input id="venue" name="venue" required>
+                </div>
+
+                <div class="field">
+                    <label for="event_date">Event Date *</label>
+                    <input id="event_date" name="event_date" type="date" required>
+                </div>
+
+                <div class="field">
+                    <label for="registration_deadline">Registration Deadline *</label>
+                    <input id="registration_deadline" name="registration_deadline"
+                           type="date" required>
+                </div>
+
+                <div class="field">
+                    <label for="start_time">Start Time *</label>
+                    <input id="start_time" name="start_time" type="time" required>
+                </div>
+
+                <div class="field">
+                    <label for="end_time">End Time *</label>
+                    <input id="end_time" name="end_time" type="time" required>
+                </div>
+
+                <div class="field">
+                    <label for="maximum_capacity">Maximum Capacity *</label>
+                    <input id="maximum_capacity" name="maximum_capacity"
+                           type="number" min="1" required>
+                </div>
+
+                <div class="field">
+                    <label for="status">Event Status *</label>
+                    <select id="status" name="status" required>
+                        <option value="Upcoming">Upcoming</option>
+                        <option value="Ongoing">Ongoing</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Cancelled">Cancelled</option>
+                    </select>
+                </div>
+
+                <div class="field full">
+                    <button type="submit" id="submitButton">Create Event</button>
+                </div>
+            </form>
+
+            <div id="message" role="status" aria-live="polite"></div>
+        </section>
+    </main>
+
+    <script src="organizer.js"></script>
+</body>
+</html>
